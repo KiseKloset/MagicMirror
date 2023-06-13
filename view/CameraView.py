@@ -34,7 +34,7 @@ class CameraView(tk.Frame, ViewContract):
 
 
 	def init_samples(self):
-		sample_paths = glob.glob("samples/*")
+		sample_paths = glob.glob("samples/clothes/*")
 
 		samples = [Image.open(path).resize((SAMPLE_WIDTH, SAMPLE_HEIGHT)) for path in sample_paths]
 		self.samples = [ImageTk.PhotoImage(sample) for sample in samples]
