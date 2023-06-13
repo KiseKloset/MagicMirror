@@ -1,11 +1,13 @@
 import tkinter as tk
 import glob
 
+from pathlib import Path
 from PIL import Image, ImageTk
 from view.Camera import Camera
 from view.SettingsView import SettingsView
 from presenter.ViewContract import ViewContract
 from presenter.Presenter import Presenter
+from model.TryOn import CLOTHES_PATH
 
 
 SAMPLE_SPACE = 5
@@ -34,7 +36,8 @@ class CameraView(tk.Frame, ViewContract):
 
 
 	def init_samples(self):
-		sample_paths = glob.glob("samples/clothes/*")
+		sample_paths = list(glob.glob(str(CLOTHES_PATH / "*.jpg")))
+		self.sample_names = [Path(path).name for path in sample_paths]
 
 		samples = [Image.open(path).resize((SAMPLE_WIDTH, SAMPLE_HEIGHT)) for path in sample_paths]
 		self.samples = [ImageTk.PhotoImage(sample) for sample in samples]
@@ -55,19 +58,25 @@ class CameraView(tk.Frame, ViewContract):
 		if self.camera.frame is None:
 			self.destroy()
 
-		self.update_background()
+		self.presenter.check_gesture(self.camera.frame)
+		bbox, tryon = self.presenter.perform_tryon(self.camera.frame, self.sample_names[self.selected_sample])
+
+		self.update_background(tryon)
 		self.update_samples()
 
 		if DEBUG_TRACKING:
+			self.draw_tryon_bbox(bbox)
 			self.update_trackings()
-
-		self.presenter.check_gesture(self.camera.frame)
 
 		self.after(10, self.update)
 
 
-	def update_background(self):
-		self.canvas_image = ImageTk.PhotoImage(image = Image.fromarray(self.camera.frame))
+	def update_background(self, frame: None):
+		background = frame
+		if background is None:
+			background = self.camera.frame
+
+		self.canvas_image = ImageTk.PhotoImage(image = Image.fromarray(background))
 		self.canvas.create_image(self.camera_offset_x, self.camera_offset_y, image = self.canvas_image, anchor = tk.NW)
 
 	
@@ -101,6 +110,20 @@ class CameraView(tk.Frame, ViewContract):
 				self.camera_offset_y + pt[1] + r, 
 				fill='red'
 			)
+
+	
+	def draw_tryon_bbox(self, bbox):
+		if bbox is None:
+			return
+		
+		self.canvas.create_rectangle(
+			self.camera_offset_x + bbox['l'], 
+			self.camera_offset_y + bbox['t'], 
+			self.camera_offset_x + bbox['r'], 
+			self.camera_offset_y + bbox['b'], 
+			outline="blue",
+			width=2
+		)
 
 
 	def next_sample(self):
