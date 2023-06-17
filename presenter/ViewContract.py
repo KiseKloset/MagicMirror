@@ -6,9 +6,3 @@ class ViewContract(object):
 
     def previous_sample(self):
         pass
-
-    def hsv_upper_bound(self):
-        pass
-
-    def hsv_lower_bound(self) -> np.ndarray:
-        pass

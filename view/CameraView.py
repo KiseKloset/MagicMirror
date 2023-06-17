@@ -4,10 +4,9 @@ import glob
 from pathlib import Path
 from PIL import Image, ImageTk
 from view.Camera import Camera
-from view.SettingsView import SettingsView
 from presenter.ViewContract import ViewContract
 from presenter.Presenter import Presenter
-from model.TryOn import CLOTHES_PATH
+from model.tryon.TryOn import CLOTHES_PATH
 
 
 SAMPLE_SPACE = 5
@@ -22,7 +21,6 @@ class CameraView(tk.Frame, ViewContract):
 	def __init__(self, parent):
 		tk.Frame.__init__(self, parent)
 		self.presenter: Presenter = Presenter(self)
-		self.settings = SettingsView()
 		self.init_camera()
 		self.init_samples()
 		self.init_ui()
@@ -132,14 +130,6 @@ class CameraView(tk.Frame, ViewContract):
 	
 	def previous_sample(self):
 		self.selected_sample = (self.selected_sample - 1) % len(self.samples)
-
-	
-	def hsv_upper_bound(self):
-		return self.settings.hsv_upper_bound()
-	
-
-	def hsv_lower_bound(self):
-		return self.settings.hsv_lower_bound()
 
 
 	def release(self):

@@ -1,12 +1,9 @@
 import cv2
 import time
 
- 
-DIRECTION_NONE = 0
-DIRECTION_UP = 1 << 0
-DIRECTION_LEFT = 1 << 1
-DIRECTION_DOWN = 1 << 2
-DIRECTION_RIGHT = 1 << 3
+
+from .ObjectTracking import *
+
 
 MAX_TRACKING_PTS = 2
 MOVEMENT_PX_THRESHOLD = 10
@@ -16,20 +13,20 @@ FORGET_STEP_THRESHOLD = 3
 PREDICT_DELAY_MS = 1000
 
 
-class ObjectTracking:
+class HSVColorTracking(ObjectTracking):
 	def __init__(self):
 		self.pts = []
 		self.forget_counter = 0
 		self.delay_start = 0
 
 	
-	def update(self, frame, lower_bound, upper_bound):
+	def update(self, frame):
 		if (time.time() - self.delay_start) * 1000 < PREDICT_DELAY_MS:
 			return
 
 		cnts = []
 		if frame is not None:
-			cnts = self.find_contours(frame, lower_bound, upper_bound)
+			cnts = self.find_contours(frame)
 		
 		if len(cnts) > 0:
 			self.on_new_tracking(cnts)
@@ -37,10 +34,10 @@ class ObjectTracking:
 			self.on_lost_tracking()
 
 
-	def find_contours(self, frame, lower_bound, upper_bound):
+	def find_contours(self, frame):
 		hsv = cv2.cvtColor(frame, cv2.COLOR_RGB2HSV)
 
-		mask = cv2.inRange(hsv, lower_bound, upper_bound)
+		mask = cv2.inRange(hsv, (30, 100, 100), (85, 255, 255))
 		# mask = cv2.erode(mask, None, iterations=2)
 		# mask = cv2.dilate(mask, None, iterations=2)
 
@@ -114,4 +111,5 @@ class ObjectTracking:
 		return (dx, dy)
 
 
-
+	def tracking_pts(self):
+		return self.pts

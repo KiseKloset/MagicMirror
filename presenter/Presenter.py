@@ -2,20 +2,21 @@ import numpy as np
 import torch
 
 from presenter.ViewContract import ViewContract
-from model.ObjectTracking import ObjectTracking, DIRECTION_LEFT, DIRECTION_RIGHT
-from model.TryOn import TryOn
+from model.tracking.ObjectTracking import ObjectTracking, DIRECTION_LEFT, DIRECTION_RIGHT
+from model.tracking.HSVColorTracking import HSVColorTracking
+from model.tryon.TryOn import TryOn
 
 
 class Presenter:
     def __init__(self, view: ViewContract):
         self.view: ViewContract = view
-        self.tracker = ObjectTracking()
+        self.tracker: ObjectTracking = HSVColorTracking()
         device = "cuda:0" if torch.cuda.is_available() else "cpu"
         self.tryon = TryOn(device)
 
 
     def check_gesture(self, frame: np.ndarray):
-        self.tracker.update(frame, self.view.hsv_lower_bound(), self.view.hsv_upper_bound())
+        self.tracker.update(frame)
 
         direction = self.tracker.predict_direction()
         
@@ -31,5 +32,5 @@ class Presenter:
 
 
     def get_tracking_pts(self):
-        return self.tracker.pts
+        return self.tracker.tracking_pts()
 

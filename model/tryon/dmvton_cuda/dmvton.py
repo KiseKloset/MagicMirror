@@ -3,7 +3,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from .models.afwm_test import AFWM
+from .models.pfafn.afwm_test import AFWM
 from .models.mobile_unet_generator import MobileNetV2_unet
 from .options.test_options import TestOptions
 
@@ -14,14 +14,11 @@ def load_checkpoint(model, checkpoint_path):
     checkpoint = torch.load(checkpoint_path, map_location="cpu")
     checkpoint_new = model.state_dict()
     for param in checkpoint_new:
-        checkpoint_new[param] = checkpoint[param]
-    for param in checkpoint:
-        if param not in checkpoint_new:
-            print(param)
+        checkpoint_new[param] = checkpoint["model"][param]
     model.load_state_dict(checkpoint_new)
 
 
-class DMVTONModel(nn.Module):
+class SRMGN(nn.Module):
     def __init__(self, checkpoint=None):
         super().__init__()
         opt = TestOptions().parse()
@@ -29,7 +26,6 @@ class DMVTONModel(nn.Module):
 
         self.warp_model = AFWM(opt, 3)
         self.gen_model = MobileNetV2_unet(7, 4)
-
         if checkpoint != None:
             if checkpoint.get('warp') != None:
                 load_checkpoint(self.warp_model, checkpoint['warp'])
@@ -59,10 +55,10 @@ class DMVTONModel(nn.Module):
 
 class DMVTON:
     def __init__(self):
-        self.model = DMVTONModel(
+        self.model = SRMGN(
             checkpoint= {
-                "warp": "model/dmvton/mobile_warp.pt",
-                "gen": "model/dmvton/mobile_gen.pt",
+                "warp": "model/tryon/dmvton_cuda/mobile_warp.pt",
+                "gen": "model/tryon/dmvton_cuda/mobile_gen.pt",
             }
         )
 
