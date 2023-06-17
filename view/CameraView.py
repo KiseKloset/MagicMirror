@@ -54,7 +54,7 @@ class CameraView(tk.Frame, ViewContract):
 		if self.camera.frame is None:
 			self.destroy()
 
-		self.presenter.process_frame(self.camera.frame)
+		self.presenter.process_frame(self.camera.frame, self.sample_names[self.selected_sample])
 
 
 	def on_processed(self, frame):

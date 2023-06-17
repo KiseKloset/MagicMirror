@@ -80,7 +80,8 @@ class TryOn:
         if clothes_name not in self.samples:
             return frame
 
-        cropped_result, img = self.preprocess_frame(frame)        
+        # cropped_result, img = self.preprocess_frame(frame)   
+        img = frame
         
         person = self.transform(Image.fromarray(img)).to(self.device).unsqueeze(0)
         clothes = self.samples[clothes_name]["clothes"]
@@ -90,7 +91,8 @@ class TryOn:
         cv_out = (torch_out.permute(1, 2, 0).detach().cpu().numpy() + 1) / 2
         out = (cv_out * 255).astype(np.uint8)
 
-        return cropped_result, self.postprocess_frame(frame, out, cropped_result)
+        # return cropped_result, self.postprocess_frame(frame, out, cropped_result)
+        return out
 
 
     def preprocess_frame(self, frame):
