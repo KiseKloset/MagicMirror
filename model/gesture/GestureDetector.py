@@ -1,3 +1,4 @@
+from sympy import QQ
 from model.pose.PoseEstimator import *
 import time
 
@@ -19,13 +20,13 @@ class GestureDetector:
 		self.pts = []
 		self.delay_start = 0
 
-	def predict(self, pose):
+	def predict(self, pose, frame):
 		direction = DIRECTION_NONE
 
-		# if time.time() - self.delay_start < self.predict_delay:
-		# 	return direction
+		if time.time() - self.delay_start < self.predict_delay:
+			return direction
 
-		if not self.__append_pose(pose):
+		if not self.__append_pose(pose, frame):
 			return direction
 		
 		if len(self.pts) < self.max_tracking_pts:
@@ -50,7 +51,7 @@ class GestureDetector:
 		return direction
 	
 
-	def __append_pose(self, pose):
+	def __append_pose(self, pose, frame):
 		if pose[LEFT_THUMB] is None or pose[LEFT_INDEX] is None or pose[LEFT_PINKY] is None:
 			return False
 
@@ -59,6 +60,12 @@ class GestureDetector:
 		pt = [x, y]
 
 		if pt[0] <= 0 or pt[1] <= 0:
+			return False
+
+		if y >= frame.shape[0] // 3:
+			return False
+
+		if x < frame.shape[1] // 4 or x > frame.shape[1] * 3 // 4:
 			return False
 
 		self.pts.append(pt)
