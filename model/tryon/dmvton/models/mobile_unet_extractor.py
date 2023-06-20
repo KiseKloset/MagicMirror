@@ -187,5 +187,3 @@ if __name__ == "__main__":
         for i in range(1000):
             out = net(x)
         end = time.time()
-    print([i.shape for i in out])
-    print((end - start) / 1000)

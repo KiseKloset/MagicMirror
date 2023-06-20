@@ -18,8 +18,8 @@ SAMPLE_HORIZONTAL_PADDING = 5
 class CameraView(tk.Frame, ViewContract):
 	def __init__(self, parent):
 		tk.Frame.__init__(self, parent)
-		self.presenter: Presenter = Presenter(self)
 		self.init_camera()
+		self.presenter: Presenter = Presenter(self)
 		self.init_samples()
 		self.init_ui()
 		self.update()
@@ -47,6 +47,10 @@ class CameraView(tk.Frame, ViewContract):
 		self.canvas_image = None
 		self.canvas = tk.Canvas(self, width = self.camera.width, height = self.camera.height + SAMPLE_HEIGHT)
 		self.canvas.pack()
+
+
+	def get_camera_size(self):
+		return self.camera.width, self.camera.height
 
 
 	def update(self):
