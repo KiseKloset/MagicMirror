@@ -73,7 +73,10 @@ class Presenter:
 		return self.pose_estimator.predict(frame)
 
 	def __check_gesture(self):
-		direction = self.gesture_detector.predict(self.pose_keypoints)
+		right_rect = self.view.get_next_button_rect()
+		left_rect = self.view.get_prev_button_rect()
+
+		direction = self.gesture_detector.predict(self.pose_keypoints, right_rect, left_rect)
 		if direction == DIRECTION_LEFT:
 			self.view.previous_sample()
 
@@ -108,10 +111,10 @@ class Presenter:
 	def __init_regison(self, frame_width, frame_height):
 		# Calculate the rectangle coordinates
 		w, h = int(frame_width), int(frame_height)
-		self.rect_width = int(h * (192 / 256))
-		self.rect_height = h
+		self.rect_height = int(h * (2 / 3))
+		self.rect_width = int(self.rect_height * (192 / 256))
 		self.rect_x = (w - self.rect_width) // 2
-		self.rect_y = 0
+		self.rect_y = (h - self.rect_height) // 2
 
 	def __draw_region(self, frame):
 		cv2.rectangle(
@@ -121,5 +124,8 @@ class Presenter:
 			(0, 255, 0), 
 			2,
 		)
-
+	
+		x = (self.pose_keypoints[RIGHT_THUMB][0] + self.pose_keypoints[RIGHT_INDEX][0] + self.pose_keypoints[RIGHT_PINKY][0]) / 3
+		y = (self.pose_keypoints[RIGHT_THUMB][1] + self.pose_keypoints[RIGHT_INDEX][1] + self.pose_keypoints[RIGHT_PINKY][1]) / 3
+		cv2.circle(frame, (int(x), int(y)), 2, (0, 255, 0))
 		return frame

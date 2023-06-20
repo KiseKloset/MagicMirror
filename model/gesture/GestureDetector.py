@@ -14,57 +14,36 @@ class GestureDetector:
 		self.max_tracking_pts = 3
 		self.x_threshold = 30
 		self.y_threshold = 100
-		self.predict_delay = 500
+		self.predict_delay = 5
 
 		self.pts = []
 		self.delay_start = 0
 
-	def predict(self, pose):
+	def predict(self, pose, right_rect, left_rect):
 		direction = DIRECTION_NONE
 
-		# if time.time() - self.delay_start < self.predict_delay:
-		# 	return direction
+		right_x = (pose[RIGHT_THUMB][0] + pose[RIGHT_INDEX][0] + pose[RIGHT_PINKY][0]) / 3
+		right_y = (pose[RIGHT_THUMB][1] + pose[RIGHT_INDEX][1] + pose[RIGHT_PINKY][1]) / 3
+		right_pt = [right_x, right_y]	
 
-		if not self.__append_pose(pose):
+		left_x = (pose[LEFT_THUMB][0] + pose[LEFT_INDEX][0] + pose[LEFT_PINKY][0]) / 3
+		left_y = (pose[LEFT_THUMB][1] + pose[LEFT_INDEX][1] + pose[LEFT_PINKY][1]) / 3
+		left_pt = [left_x, left_y]	
+
+		if time.time() - self.delay_start < self.predict_delay:
 			return direction
-		
-		if len(self.pts) < self.max_tracking_pts:
-			return direction
-		
-		dx, dy = self.__distance_pts(self.pts[0], self.pts[-1])
 
-		if dx > self.x_threshold:
-			direction = direction | DIRECTION_RIGHT
-		elif dx < -self.x_threshold:
-			direction = direction | DIRECTION_LEFT
+		if self.__in_rect(right_pt, right_rect) or self.__in_rect(left_pt, right_rect):
+			direction = DIRECTION_RIGHT
 
-		if dy > self.y_threshold:
-			direction = direction | DIRECTION_DOWN
-		elif dy < -self.y_threshold:
-			direction = direction | DIRECTION_UP
+		elif self.__in_rect(right_pt, left_rect) or self.__in_rect(left_pt, left_rect):
+			direction  = DIRECTION_LEFT
 
 		if direction != DIRECTION_NONE:
 			self.delay_start = time.time()
-			self.pts.clear()
 
 		return direction
 	
 
-	def __append_pose(self, pose):
-		pt = np.array(pose[RIGHT_THUMB]) + np.array(pose[RIGHT_INDEX]) + np.array(pose[RIGHT_PINKY]) / 3
-
-		if pt[0] <= 0 or pt[1] <= 0:
-			return False
-
-		self.pts.append(pt)
-
-		if len(self.pts) > self.max_tracking_pts:
-			self.pts.pop(0)
-
-		return True
-
-
-	def __distance_pts(self, p0, p1):
-		dx = p1[0] - p0[0]
-		dy = p1[1] - p0[1]
-		return (dx, dy)
+	def __in_rect(self, pt, rect):
+		return pt[0] >= rect[0] and pt[0] <= rect[2] and pt[1] >= rect[1] and pt[1] <= rect[3]

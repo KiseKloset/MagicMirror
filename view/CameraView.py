@@ -1,5 +1,6 @@
 import tkinter as tk
 import glob
+import cv2
 
 from pathlib import Path
 from PIL import Image, ImageTk
@@ -21,6 +22,7 @@ class CameraView(tk.Frame, ViewContract):
 		self.init_camera()
 		self.presenter: Presenter = Presenter(self)
 		self.init_samples()
+		self.init_assets()
 		self.init_ui()
 		self.update()
 
@@ -41,6 +43,24 @@ class CameraView(tk.Frame, ViewContract):
 
 		self.sample_offset_x = (self.camera.width - (SAMPLE_WIDTH + SAMPLE_SPACE) * len(self.samples)) / 2
 		self.sample_offset_y = SAMPLE_HORIZONTAL_PADDING
+
+
+	def init_assets(self):
+		self.next_button = cv2.resize(cv2.imread("assets/button.png", cv2.IMREAD_UNCHANGED), (100, 100))
+		self.prev_button = cv2.flip(self.next_button, 1)
+		
+		w, h = self.camera.width, self.camera.height
+
+		self.next_button = ImageTk.PhotoImage(image = Image.fromarray(self.next_button))
+		self.prev_button = ImageTk.PhotoImage(image = Image.fromarray(self.prev_button))
+		
+		self.prev_button_x = 20
+		self.next_button_x = w - self.prev_button_x - self.next_button.width()
+
+		self.prev_button_y = h // 2 - self.prev_button.height() // 2 
+		self.next_button_y = h // 2 - self.next_button.height() // 2 
+
+
 
 
 	def init_ui(self):
@@ -64,6 +84,7 @@ class CameraView(tk.Frame, ViewContract):
 	def on_processed(self, frame):
 		self.draw_background(frame)
 		self.draw_samples()
+		self.draw_assets()
 		self.after(1, self.update)
 
 
@@ -91,12 +112,26 @@ class CameraView(tk.Frame, ViewContract):
 				)
 
 
+	def draw_assets(self):
+		self.canvas.create_image(self.camera_offset_x + self.next_button_x, self.camera_offset_y + self.next_button_y, image = self.next_button, anchor = tk.NW)
+		self.canvas.create_image(self.camera_offset_x + self.prev_button_x, self.camera_offset_y + self.prev_button_y, image = self.prev_button, anchor = tk.NW)
+
+
+
 	def next_sample(self):
 		self.selected_sample = (self.selected_sample + 1) % len(self.samples)
 
 	
 	def previous_sample(self):
 		self.selected_sample = (self.selected_sample - 1) % len(self.samples)
+
+
+	def get_next_button_rect(self):
+		return [int(i) for i in [self.next_button_x, self.next_button_y, self.next_button_x + self.next_button.width(), self.next_button_y + self.next_button.height()]]
+
+
+	def get_prev_button_rect(self):
+		return [int(i) for i in [self.prev_button_x, self.prev_button_y, self.prev_button_x + self.prev_button.width(), self.prev_button_y + self.prev_button.height()]]
 
 
 	def release(self):
