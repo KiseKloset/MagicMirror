@@ -64,6 +64,7 @@ class TryOn:
 
 
     def load_models(self):
+        print(self.device)
         if self.device == "cpu":
             from .dmvton.dmvton import DMVTON
             self.model = DMVTON()

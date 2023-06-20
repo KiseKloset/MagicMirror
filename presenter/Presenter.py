@@ -36,15 +36,15 @@ class Presenter:
 		self.current_frame = None
 
 	def process_frame(self, bgr_frame: np.ndarray, clothes_id: str):
-		self.counter += 1
+		# self.counter += 1
 
-		if self.counter % 3 == 1:
+		if True:
 			rgb_frame = self.__pre_process(bgr_frame)
 
 			# CPU
 			self.pose_keypoints, self.pose_mask = self.__detect_pose_keypoints_and_segmentation(rgb_frame)
 			if self.pose_keypoints is not None:
-				self.__check_gesture()
+				self.__check_gesture(rgb_frame)
 
 				self.person = self.__crop_person(rgb_frame)
 
@@ -53,7 +53,7 @@ class Presenter:
 
 			out = self.__post_process(rgb_frame, try_on=self.try_on if self.pose_keypoints is not None else None)
 
-			out = self.__draw_region(out)
+			# out = self.__draw_region(out)
 
 			self.current_frame = out
 
@@ -72,8 +72,8 @@ class Presenter:
 	def __detect_pose_keypoints_and_segmentation(self, frame):
 		return self.pose_estimator.predict(frame)
 
-	def __check_gesture(self):
-		direction = self.gesture_detector.predict(self.pose_keypoints)
+	def __check_gesture(self, frame):
+		direction = self.gesture_detector.predict(self.pose_keypoints, frame)
 		if direction == DIRECTION_LEFT:
 			self.view.next_sample()
 
