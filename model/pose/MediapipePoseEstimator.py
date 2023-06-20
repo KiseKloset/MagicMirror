@@ -7,7 +7,7 @@ from mediapipe.tasks.python import vision
 
 class MediapipePoseEstimator(PoseEstimator):
     def __init__(self):
-        base_options = python.BaseOptions(model_asset_path='model/pose/pose_landmarker_lite.task')
+        base_options = python.BaseOptions(model_asset_path='model/pose/pose_landmarker_full.task')
         options = vision.PoseLandmarkerOptions(
             base_options=base_options,
             output_segmentation_masks=True)

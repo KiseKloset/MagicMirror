@@ -75,10 +75,10 @@ class Presenter:
 	def __check_gesture(self):
 		direction = self.gesture_detector.predict(self.pose_keypoints)
 		if direction == DIRECTION_LEFT:
-			self.view.previous_sample()
+			self.view.next_sample()
 
 		elif direction == DIRECTION_RIGHT:
-			self.view.next_sample()
+			self.view.previous_sample()
 
 
 	def __crop_person(self, frame):
@@ -118,7 +118,7 @@ class Presenter:
 			frame, 
 			(self.rect_x, self.rect_y), 
 			(self.rect_x + self.rect_width, self.rect_y + self.rect_height), 
-			(0, 255, 0), 
+			(255, 0, 0), 
 			2,
 		)
 

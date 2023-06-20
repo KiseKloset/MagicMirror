@@ -51,11 +51,11 @@ class GestureDetector:
 	
 
 	def __append_pose(self, pose):
-		if pose[RIGHT_THUMB] is None or pose[RIGHT_INDEX] is None or pose[RIGHT_PINKY] is None:
+		if pose[LEFT_THUMB] is None or pose[LEFT_INDEX] is None or pose[LEFT_PINKY] is None:
 			return False
 
-		x = (pose[RIGHT_THUMB][0] + pose[RIGHT_INDEX][0] + pose[RIGHT_PINKY][0]) / 3
-		y = (pose[RIGHT_THUMB][1] + pose[RIGHT_INDEX][1] + pose[RIGHT_PINKY][1]) / 3
+		x = (pose[LEFT_THUMB][0] + pose[LEFT_INDEX][0] + pose[LEFT_PINKY][0]) / 3
+		y = (pose[LEFT_THUMB][1] + pose[LEFT_INDEX][1] + pose[LEFT_PINKY][1]) / 3
 		pt = [x, y]
 
 		if pt[0] <= 0 or pt[1] <= 0:
