@@ -14,7 +14,7 @@ class GestureDetector:
 		self.max_tracking_pts = 3
 		self.x_threshold = 30
 		self.y_threshold = 100
-		self.predict_delay = 500
+		self.predict_delay = 1
 
 		self.pts = []
 		self.delay_start = 0
@@ -22,12 +22,12 @@ class GestureDetector:
 	def predict(self, pose):
 		direction = DIRECTION_NONE
 
-		if time.time() - self.delay_start < self.predict_delay:
-			return direction
+		# if time.time() - self.delay_start < self.predict_delay:
+		# 	return direction
 
 		if not self.__append_pose(pose):
 			return direction
-
+		
 		if len(self.pts) < self.max_tracking_pts:
 			return direction
 		
@@ -51,7 +51,12 @@ class GestureDetector:
 	
 
 	def __append_pose(self, pose):
-		pt = pose[LEFT_WRIST]
+		if pose[LEFT_THUMB] is None or pose[LEFT_INDEX] is None or pose[LEFT_PINKY] is None:
+			return False
+
+		x = (pose[LEFT_THUMB][0] + pose[LEFT_INDEX][0] + pose[LEFT_PINKY][0]) / 3
+		y = (pose[LEFT_THUMB][1] + pose[LEFT_INDEX][1] + pose[LEFT_PINKY][1]) / 3
+		pt = [x, y]
 
 		if pt[0] <= 0 or pt[1] <= 0:
 			return False
@@ -60,6 +65,8 @@ class GestureDetector:
 
 		if len(self.pts) > self.max_tracking_pts:
 			self.pts.pop(0)
+
+		return True
 
 
 	def __distance_pts(self, p0, p1):
