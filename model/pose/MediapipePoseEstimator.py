@@ -27,8 +27,8 @@ class MediapipePoseEstimator(PoseEstimator):
         keypoints = [[pt.x * w, pt.y * h] for pt in detection_result.pose_landmarks[0]]
         mask = detection_result.segmentation_masks[0].numpy_view()
         mask = mask > 0.5
-        mask = np.repeat(mask[:, :, np.newaxis], 3, axis=2)
         mask = self.__blend(mask)
+        mask = np.repeat(mask[:, :, np.newaxis], 3, axis=2)
         return keypoints, mask
     
     def __blend(self, mask):
