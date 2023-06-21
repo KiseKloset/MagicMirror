@@ -34,6 +34,7 @@ class Presenter:
 		camera_width, camera_height = self.view.get_camera_size()
 		self.__init_regison(camera_width, camera_height)
 		self.current_frame = None
+		self.empty_frame = np.array((camera_height, camera_width, 3), dtype=np.uint8)
 
 	def process_frame(self, bgr_frame: np.ndarray, clothes_id: str):
 		self.counter += 1
@@ -83,8 +84,7 @@ class Presenter:
 
 	def __crop_person(self, frame):
 		# TODO
-		person = frame.copy()
-		person[~self.pose_mask] = 255
+		person = (frame * self.pose_mask + self.empty_frame * (1 - self.pose_mask)).astype(np.uint8)
 		person = person[self.rect_y : self.rect_y + self.rect_height, self.rect_x : self.rect_x + self.rect_width]
 		return person
 	
@@ -101,7 +101,7 @@ class Presenter:
 			result = cv2.resize(try_on, (self.rect_width, self.rect_height))
 			ori = frame.copy()
 			frame[self.rect_y : self.rect_y + self.rect_height, self.rect_x : self.rect_x + self.rect_width] = result
-			frame = frame*self.pose_mask + ori*(~self.pose_mask)
+			frame = (frame*self.pose_mask + ori*(1 - self.pose_mask)).astype(np.uint8)
 
 		return frame
 
