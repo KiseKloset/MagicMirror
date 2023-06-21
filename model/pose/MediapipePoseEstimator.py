@@ -1,3 +1,5 @@
+import cv2
+
 from .PoseEstimator import *
 
 import mediapipe as mp
@@ -12,6 +14,8 @@ class MediapipePoseEstimator(PoseEstimator):
             base_options=base_options,
             output_segmentation_masks=True)
         self.detector = vision.PoseLandmarker.create_from_options(options)
+        self.last_masks = []
+        self.max_blend = 3
 
     def predict(self, frame: np.ndarray):
         h, w, _ = frame.shape
@@ -24,4 +28,14 @@ class MediapipePoseEstimator(PoseEstimator):
         mask = detection_result.segmentation_masks[0].numpy_view()
         mask = mask > 0.5
         mask = np.repeat(mask[:, :, np.newaxis], 3, axis=2)
+        mask = self.__blend(mask)
         return keypoints, mask
+    
+    def __blend(self, mask):
+        if len(self.last_masks) == self.max_blend:
+            self.last_masks.pop(0)
+        self.last_masks.append(mask)
+
+        out = np.mean(self.last_masks, axis=0)
+        out = cv2.blur(out, (3, 3))
+        return out
