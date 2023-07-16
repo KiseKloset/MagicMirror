@@ -4,6 +4,7 @@ import glob
 from pathlib import Path
 from PIL import Image, ImageTk
 from view.Camera import Camera
+from view.BackgroundSelectView import BackgroundSelectView
 from presenter.ViewContract import ViewContract
 from presenter.Presenter import Presenter
 from model.tryon.TryOn import CLOTHES_PATH
@@ -20,6 +21,7 @@ class CameraView(tk.Frame, ViewContract):
 		tk.Frame.__init__(self, parent)
 		self.num_sub = 2
 		self.init_camera()
+		self.bg_view = BackgroundSelectView(self.camera.width, self.camera.height)
 		self.presenter: Presenter = Presenter(self)
 		self.init_samples()
 		self.init_ui()
@@ -57,13 +59,21 @@ class CameraView(tk.Frame, ViewContract):
 		self.camera.update()
 		if self.camera.frame is None:
 			self.destroy()
-
-		self.presenter.process_frame(self.camera.frame, self.sample_names[self.selected_sample])
+		
+		bg = self.bg_view.get_select_bg()
+		self.presenter.process_frame(self.camera.frame, self.sample_names[self.selected_sample], bg)
 
 
 	def on_processed(self, frame):
 		self.draw_background(frame)
 		self.draw_samples()
+		self.bg_view.draw(
+			self.canvas, 
+			self.camera_offset_x, 
+			self.camera_offset_y,
+			self.camera_offset_x + frame.shape[1],
+			self.camera_offset_y + frame.shape[0] 
+		)
 		self.after(1, self.update)
 
 
@@ -100,6 +110,14 @@ class CameraView(tk.Frame, ViewContract):
 	
 	def previous_sample(self):
 		self.selected_sample = (self.selected_sample - 1) % len(self.samples)
+
+
+	def next_bg(self):
+		self.bg_view.next_bg()
+
+
+	def previous_bg(self):
+		self.bg_view.prev_bg()
 
 
 	def release(self):

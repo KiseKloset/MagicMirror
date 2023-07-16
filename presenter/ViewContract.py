@@ -7,5 +7,11 @@ class ViewContract(object):
     def previous_sample(self):
         pass
 
+    def next_bg(self):
+        pass
+
+    def previous_bg(self):
+        pass
+
     def on_processed(self, frame: np.ndarray):
         pass

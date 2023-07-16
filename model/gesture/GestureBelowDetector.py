@@ -9,8 +9,9 @@ DIRECTION_DOWN = 1 << 2
 DIRECTION_RIGHT = 1 << 3
 
 
-class GestureDetector:
-	def __init__(self):
+class GestureBelowDetector:
+	def __init__(self, x, y, w, h):
+		self.tryon_bbox = [x,y,w,h]
 		self.max_tracking_pts = 3
 		self.x_threshold = 30
 		self.y_threshold = 100
@@ -61,10 +62,10 @@ class GestureDetector:
 		if pt[0] <= 0 or pt[1] <= 0:
 			return False
 
-		if y >= frame.shape[0] // 3:
+		if y < frame.shape[0] // 2:
 			return False
 
-		if x < frame.shape[1] // 4 or x > frame.shape[1] * 3 // 4:
+		if x < self.tryon_bbox[0] + self.tryon_bbox[2]:
 			return False
 
 		self.pts.append(pt)

@@ -4,6 +4,7 @@ import torch
 
 from presenter.ViewContract import ViewContract
 from model.gesture.GestureDetector import *
+from model.gesture.GestureBelowDetector import *
 from model.pose.MediapipePoseEstimator import MediapipePoseEstimator
 from model.pose.PoseEstimator import *
 from model.tryon.TryOn import TryOn
@@ -34,12 +35,10 @@ class Presenter:
 		camera_width, camera_height = self.view.get_camera_size()
 		self.__init_regison(camera_width, camera_height)
 		self.current_frame = None
+		self.gesture_bg_detector: GestureBelowDetector = GestureBelowDetector(self.rect_x, self.rect_y, self.rect_width, self.rect_height)
 
-		# Background
-		self.rgb_background = cv2.cvtColor(cv2.imread("background/night-street.jpg"), cv2.COLOR_BGR2RGB)
-		self.rgb_background = cv2.resize(self.rgb_background, (int(camera_width), int(camera_height)))
 
-	def process_frame(self, bgr_frame: np.ndarray, clothes_id: str):
+	def process_frame(self, bgr_frame: np.ndarray, clothes_id: str, bg: np.ndarray):
 		# self.counter += 1
 
 		if True:
@@ -55,7 +54,7 @@ class Presenter:
 				# # GPU optimized here
 				self.try_on = self.__try_on(clothes_id)
 
-			rgb_frame = self.__add_background(rgb_frame)
+			rgb_frame = self.__add_background(rgb_frame, bg)
 
 			out = self.__post_process(rgb_frame, try_on=self.try_on if self.pose_keypoints is not None else None)
 
@@ -86,6 +85,13 @@ class Presenter:
 		elif direction == DIRECTION_RIGHT:
 			self.view.previous_sample()
 
+		below_direction = self.gesture_bg_detector.predict(self.pose_keypoints, frame)
+		if below_direction == DIRECTION_LEFT:
+			self.view.next_bg()
+
+		elif below_direction == DIRECTION_RIGHT:
+			self.view.previous_bg()
+
 
 	def __crop_person(self, frame):
 		# TODO
@@ -101,8 +107,6 @@ class Presenter:
 
 
 	def __post_process(self, frame, try_on=None):
-		# TODO
-		# Remapping, re histogram equalization
 		if try_on is not None:
 			result = cv2.resize(try_on, (self.rect_width, self.rect_height))
 			ori = frame.copy()
@@ -111,9 +115,9 @@ class Presenter:
 
 		return frame
 
-	def __add_background(self, frame):
-		if self.pose_mask is not None:
-			frame = (frame*self.pose_mask + self.rgb_background*(1 - self.pose_mask)).astype(np.uint8)
+	def __add_background(self, frame, bg):
+		if self.pose_mask is not None and bg is not None:
+			frame = (frame*self.pose_mask + bg * (1 - self.pose_mask)).astype(np.uint8)
 
 		return frame
 	
@@ -124,14 +128,3 @@ class Presenter:
 		self.rect_height = h
 		self.rect_x = (w - self.rect_width) // 2
 		self.rect_y = 0
-
-	def __draw_region(self, frame):
-		cv2.rectangle(
-			frame, 
-			(self.rect_x, self.rect_y), 
-			(self.rect_x + self.rect_width, self.rect_y + self.rect_height), 
-			(255, 0, 0), 
-			2,
-		)
-
-		return frame
