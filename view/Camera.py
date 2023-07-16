@@ -3,7 +3,7 @@ import cv2
 class Camera:
 	def __init__(self):
 		self.frame = None
-		self.cap = cv2.VideoCapture(1)
+		self.cap = cv2.VideoCapture(0)
 		if not self.cap.isOpened():
 			raise ValueError("Unable to open video source")
 		

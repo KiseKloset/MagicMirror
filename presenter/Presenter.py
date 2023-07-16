@@ -34,7 +34,10 @@ class Presenter:
 		camera_width, camera_height = self.view.get_camera_size()
 		self.__init_regison(camera_width, camera_height)
 		self.current_frame = None
-		self.empty_frame = np.array((camera_height, camera_width, 3), dtype=np.uint8)
+
+		# Background
+		self.rgb_background = cv2.cvtColor(cv2.imread("background/night-street.jpg"), cv2.COLOR_BGR2RGB)
+		self.rgb_background = cv2.resize(self.rgb_background, (int(camera_width), int(camera_height)))
 
 	def process_frame(self, bgr_frame: np.ndarray, clothes_id: str):
 		# self.counter += 1
@@ -51,6 +54,8 @@ class Presenter:
 
 				# # GPU optimized here
 				self.try_on = self.__try_on(clothes_id)
+
+			rgb_frame = self.__add_background(rgb_frame)
 
 			out = self.__post_process(rgb_frame, try_on=self.try_on if self.pose_keypoints is not None else None)
 
@@ -84,7 +89,8 @@ class Presenter:
 
 	def __crop_person(self, frame):
 		# TODO
-		person = (frame * self.pose_mask + self.empty_frame * (1 - self.pose_mask)).astype(np.uint8)
+		person = frame.copy()
+		person[~self.pose_mask] = 255
 		person = person[self.rect_y : self.rect_y + self.rect_height, self.rect_x : self.rect_x + self.rect_width]
 		return person
 	
@@ -101,10 +107,16 @@ class Presenter:
 			result = cv2.resize(try_on, (self.rect_width, self.rect_height))
 			ori = frame.copy()
 			frame[self.rect_y : self.rect_y + self.rect_height, self.rect_x : self.rect_x + self.rect_width] = result
-			frame = (frame*self.pose_mask + ori*(1 - self.pose_mask)).astype(np.uint8)
+			frame = frame*self.pose_mask + ori*(~self.pose_mask)
 
 		return frame
 
+	def __add_background(self, frame):
+		if self.pose_mask is not None:
+			frame = (frame*self.pose_mask + self.rgb_background*(1 - self.pose_mask)).astype(np.uint8)
+
+		return frame
+	
 	def __init_regison(self, frame_width, frame_height):
 		# Calculate the rectangle coordinates
 		w, h = int(frame_width), int(frame_height)
