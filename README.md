@@ -9,7 +9,7 @@ Magic Mirror 🪞 is an Virtual Try-on Augmented Reality (AR) application that c
 ### 🧰 Install
 Clone this repo and install with `conda` (we provide script `install.sh`).
 ```
-git clone https://github.com/pntt3011/MagicMirror.git
+git clone https://github.com/KiseKloset/MagicMirror.git
 cd MagicMirror
 
 # Install
